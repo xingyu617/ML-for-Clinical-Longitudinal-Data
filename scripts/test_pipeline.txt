@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "run_longExp.py", line 139, in <module>
+    exp.train(setting)
+  File "/cluster/home/chenxin/thesis/exp/exp_main.py", line 94, in train
+    train_dataset, train_loader,val_dataset,val_loader,test_dataset,test_loader = self._get_data()
+  File "/cluster/home/chenxin/thesis/exp/exp_main.py", line 39, in _get_data
+    all_data,labels = load_folder(self.args.data_dir,self.args.label_dir)
+  File "/cluster/home/chenxin/thesis/utils/datautils.py", line 40, in load_folder
+    x = x[['3930','3940','4035']]
+  File "/cluster/home/chenxin/CUDA/lib/python3.8/site-packages/pandas/core/frame.py", line 3811, in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+  File "/cluster/home/chenxin/CUDA/lib/python3.8/site-packages/pandas/core/indexes/base.py", line 6108, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/cluster/home/chenxin/CUDA/lib/python3.8/site-packages/pandas/core/indexes/base.py", line 6168, in _raise_if_missing
+    raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+KeyError: "None of [Index(['3930', '3940', '4035'], dtype='object')] are in the [columns]"
