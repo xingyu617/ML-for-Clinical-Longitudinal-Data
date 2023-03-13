@@ -29,9 +29,9 @@ if __name__ == '__main__':
   parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
   
   # forecasting task
-  parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
-  parser.add_argument('--label_len', type=int, default=48, help='start token length')
-  parser.add_argument('--pred_len', type=int, default=96, help='prediction sequence length')
+  parser.add_argument('--seq_len', type=int, default=1440, help='input sequence length')
+  #parser.add_argument('--label_len', type=int, default=48, help='start token length')
+  #parser.add_argument('--pred_len', type=int, default=96, help='prediction sequence length')
   
   
   # DLinear
@@ -49,6 +49,11 @@ if __name__ == '__main__':
   parser.add_argument('--decomposition', type=int, default=0, help='decomposition; True 1 False 0')
   parser.add_argument('--kernel_size', type=int, default=25, help='decomposition-kernel')
   parser.add_argument('--individual', type=int, default=0, help='individual head; True 1 False 0')
+  #patchTST
+  #num_patch = (max(args.context_points, args.patch_len)-args.patch_len) // args.stride + 1 
+  #c_in:int, target_dim:int, patch_len:int, stride:int, num_patch:int, 
+  parser.add_argument('--channel_in', type=int, default=3, help='input channels')
+  parser.add_argument('--class_num', type=int, default=2, help='number of classes')
   
   # Formers 
   parser.add_argument('--embed_type', type=int, default=0, help='0: default 1: value embedding + temporal embedding + positional embedding 2: value embedding + temporal embedding 3: value embedding + positional embedding 4: value embedding')
@@ -117,14 +122,19 @@ if __name__ == '__main__':
   if args.is_training:
       for ii in range(args.itr):
           # setting record of experiments
-          setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(
+          
+          
+          
+          print("seq length:",args.seq_len)
+          setting = '{}_{}_{}_ft{}_sl{}_cn{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(
               args.model_id,
               args.model,
               args.data,
               args.features,
               args.seq_len,
-              args.label_len,
-              args.pred_len,
+              args.class_num,
+              #args.label_len,
+              #args.pred_len,
               args.d_model,
               args.n_heads,
               args.e_layers,
@@ -149,13 +159,14 @@ if __name__ == '__main__':
           torch.cuda.empty_cache()
   else:
       ii = 0
-      setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(args.model_id,
+      setting = '{}_{}_{}_ft{}_sl{}_cn{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_eb{}_dt{}_{}_{}'.format(args.model_id,
                                                                                                     args.model,
                                                                                                     args.data,
                                                                                                     args.features,
                                                                                                     args.seq_len,
-                                                                                                    args.label_len,
-                                                                                                    args.pred_len,
+                                                                                                    args.class_num,
+                                                                                                    #args.label_len,
+                                                                                                    #args.pred_len,
                                                                                                     args.d_model,
                                                                                                     args.n_heads,
                                                                                                     args.e_layers,
