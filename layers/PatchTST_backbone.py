@@ -55,6 +55,8 @@ class PatchTST_backbone(nn.Module):
             self.head = self.create_pretrain_head(self.head_nf, c_in, fc_dropout) # custom head passed as a partial func with all its kwargs
         elif head_type == 'flatten': 
             self.head = Flatten_Head(self.individual, self.n_vars, self.head_nf, target_window, head_dropout=head_dropout)
+        elif head_type == 'classification':
+            self.head = ClassificationHead(self.n_vars, d_model, n_classes=2, head_dropout=head_dropout)
         
     
     def forward(self, z):                                                                   # z: [bs x nvars x seq_len]
@@ -67,6 +69,7 @@ class PatchTST_backbone(nn.Module):
         # do patching
         if self.padding_patch == 'end':
             z = self.padding_patch_layer(z)
+        
         z = z.unfold(dimension=-1, size=self.patch_len, step=self.stride)                   # z: [bs x nvars x patch_num x patch_len]
         z = z.permute(0,1,3,2)                                                              # z: [bs x nvars x patch_len x patch_num]
         
@@ -74,11 +77,14 @@ class PatchTST_backbone(nn.Module):
         z = self.backbone(z)                                                                # z: [bs x nvars x d_model x patch_num]
         z = self.head(z)                                                                    # z: [bs x nvars x target_window] 
         
+        #remove for classification
+        '''
         # denorm
         if self.revin: 
             z = z.permute(0,2,1)
             z = self.revin_layer(z, 'denorm')
             z = z.permute(0,2,1)
+        '''
         return z
     
     def create_pretrain_head(self, head_nf, vars, dropout):
@@ -86,7 +92,23 @@ class PatchTST_backbone(nn.Module):
                     nn.Conv1d(head_nf, vars, 1)
                     )
 
+class ClassificationHead(nn.Module):
+    def __init__(self, n_vars, d_model, n_classes, head_dropout):
+        super().__init__()
+        self.flatten = nn.Flatten(start_dim=1)
+        self.dropout = nn.Dropout(head_dropout)
+        self.linear = nn.Linear(n_vars*d_model, n_classes)
 
+    def forward(self, x):
+        """
+        x: [bs x nvars x d_model x num_patch]
+        output: [bs x n_classes]
+        """
+        x = x[:,:,:,-1]             # only consider the last item in the sequence, x: bs x nvars x d_model
+        x = self.flatten(x)         # x: bs x nvars * d_model
+        x = self.dropout(x)
+        y = self.linear(x)         # y: bs x n_classes
+        return y
 class Flatten_Head(nn.Module):
     def __init__(self, individual, n_vars, nf, target_window, head_dropout=0):
         super().__init__()
@@ -162,6 +184,7 @@ class TSTiEncoder(nn.Module):  #i means channel-independent
         x = self.W_P(x)                                                          # x: [bs x nvars x patch_num x d_model]
 
         u = torch.reshape(x, (x.shape[0]*x.shape[1],x.shape[2],x.shape[3]))      # u: [bs * nvars x patch_num x d_model]
+        #print(u.shape,self.W_pos.shape)
         u = self.dropout(u + self.W_pos)                                         # u: [bs * nvars x patch_num x d_model]
 
         # Encoder
