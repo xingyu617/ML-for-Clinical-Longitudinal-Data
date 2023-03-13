@@ -1,6 +1,6 @@
 from utils.datautils import *
 from exp.exp_basic import Exp_Basic
-from models import PatchTST,Linear,patchTST
+from models import PatchTST,Linear,patchTST,CNN
 from utils.tools import EarlyStopping, adjust_learning_rate, visual, test_params_flop
 from utils.metrics import metric
 
@@ -27,8 +27,9 @@ class Exp_Main(Exp_Basic):
         model_dict = {
             'Linear': Linear,
             'PatchTST': PatchTST,
-            'patchTST': patchTST,
+            'CNN': CNN
         }
+        #print(self.args)
         model = model_dict[self.args.model].Model(self.args).float()
 
         if self.args.use_multi_gpu and self.args.use_gpu:
@@ -40,6 +41,7 @@ class Exp_Main(Exp_Basic):
         all_data,labels = load_folder(self.args.data_dir,self.args.label_dir)
         X_train, y_train, X_test,y_test, X_val, y_val = my_train_test_valid_split(all_data,labels,imbalanced = True)
         print(set(y_train),set(y_test),set(y_val))
+        print(get_max_len(X_train))
         batch_size = self.args.batch_size
         #train
         train_dataset = myDataset(X_train,y_train)
@@ -74,12 +76,12 @@ class Exp_Main(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        if 'Linear' in self.args.model or 'TST' in self.args.model:
-                            outputs = self.model(batch_x)
+                        #if 'Linear' in self.args.model or 'TST' in self.args.model:
+                        outputs = self.model(batch_x)
                         
                 else:
-                    if 'Linear' in self.args.model or 'TST' in self.args.model:
-                        outputs = self.model(batch_x)
+                    #if 'Linear' in self.args.model or 'TST' in self.args.model:
+                    outputs = self.model(batch_x)
                     
                 pred = outputs.detach().cpu()
                 true = batch_y.detach().cpu()
@@ -136,14 +138,14 @@ class Exp_Main(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        if 'Linear' in self.args.model or 'TST' in self.args.model:
-                            outputs = self.model(batch_x)
+                        #if 'Linear' in self.args.model or 'TST' in self.args.model:
+                        outputs = self.model(batch_x)
                         
                         loss = criterion(outputs, batch_y)
                         train_loss.append(loss.item())
                 else:
-                    if 'Linear' in self.args.model or 'TST' in self.args.model:
-                            outputs = self.model(batch_x)
+                    #if 'Linear' in self.args.model or 'TST' in self.args.model:
+                    outputs = self.model(batch_x)
                     #print("output:",outputs.shape,type(outputs))
                     loss = criterion(outputs, batch_y)
                     train_loss.append(loss.item())
@@ -218,12 +220,12 @@ class Exp_Main(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        if 'Linear' in self.args.model or 'TST' in self.args.model:
-                            outputs = self.model(batch_x)
+                        #if 'Linear' in self.args.model or 'TST' in self.args.model:
+                        outputs = self.model(batch_x)
                         
                 else:
-                    if 'Linear' in self.args.model or 'TST' in self.args.model:
-                            outputs = self.model(batch_x)
+                    #if 'Linear' in self.args.model or 'TST' in self.args.model:
+                    outputs = self.model(batch_x)
                     
                 outputs = outputs#.detach().cpu().numpy()
                 batch_y = batch_y#.detach().cpu().numpy()
